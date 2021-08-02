@@ -1,7 +1,7 @@
 const APP_PREFIX = 'TrackingBudgets-';
 const VERSION = 'version_01';
 const CACHE_NAME = APP_PREFIX + VERSION;
-
+const DATA_CACHE_NAME = "data-cache" + VERSION;
 
 const FILES_TO_CACHE = [
   "/",
@@ -54,17 +54,37 @@ self.addEventListener("activate", function (e) {
 
 
 // Respond with cached resources
-self.addEventListener('fetch', function (e) {
-  console.log('fetch request : ' + e.request.url)
+self.addEventListener("fetch", function (e) {
+  // console.log("fetch request : " + e.request.url);
+  if (e.request.url.includes("/api/")) {
+    e.respondWith(
+      caches
+        .open(DATA_CACHE_NAME)
+        .then(cache => {
+          return fetch(e.request)
+            .then(response => {
+              if (response.status === 200) {
+                cache.put(e.request.url, response.clone());
+              }
+              return response;
+            })
+            .catch(err => {
+              return cache.match(e.request);
+            });
+        })
+        .catch(err => console.log(err))
+    );
+    return;
+  }
   e.respondWith(
-    caches.match(e.request).then(function (request) {
-      if (request) { // if cache is available, respond with cache
-        console.log('responding with cache : ' + e.request.url)
-        return request
-      } else {      
-        console.log('file is not cached, fetching : ' + e.request.url)
-        return fetch(e.request)
-      }
+    fetch(e.request).catch(function () {
+      return caches.match(e.request).then(function (response) {
+        if (response) {
+          return response;
+        } else if (e.request.headers.get("accept").includes("text/html")) {
+          return caches.match("/");
+        }
+      });
     })
-  )
-})
+  );
+});
