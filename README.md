@@ -1,7 +1,7 @@
 # Tracking-Budgets
 
 Student: Dylan Trecker </br>
-Deployed Link: https://tracking-budgets.herokuapp.com/ 
+Deployed Link: https://tracking-budgets.herokuapp.com/
 
 ## General 
 A finance tracker with offline capabilities allowing you to add or subtract funds while offline. 
